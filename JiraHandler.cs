@@ -330,21 +330,15 @@ namespace AutoAlogParser
             {
                 mUtility.OutputJiraText("[AutoAssign]+");
                 if (conditionList.Count == 0) throw new AlogParserException(AlogParserException.JIRA_CONDITION_IS_EMPTY);
-                mUtility.OutputJiraText("[AutoAssign] 1 ");
                 foreach (IssueInfo issue in issueList)
                 {
-                    mUtility.OutputJiraText("[AutoAssign] 2 ");
                     foreach (JiraCondition condition in conditionList)
                     {
-                        mUtility.OutputJiraText("[AutoAssign] 3 ");
                         if (isMatch(issue, condition))
                         {
-                            mUtility.OutputJiraText("[AutoAssign] 4 ");
                             mUtility.OutputJiraText("condition.mAssignee = " + condition.mAssignee);
                             mUtility.OutputJiraTextContinue(String.Format("Start Assign issue [{0}] to {1} ... ", issue.key, condition.mAssignee));
-                            mUtility.OutputJiraText("[AutoAssign] 5 ");
                             issue.assign(condition.mAssignee);
-                            mUtility.OutputJiraText("[AutoAssign] 6 ");
                             mUtility.OutputJiraText("Done");
                             break;
                         }
