@@ -37,7 +37,7 @@ namespace AutoAlogParser
             mFilePathText.Text = "";
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Title = "Select Log";
-            openFileDialog.InitialDirectory = ".\\";
+            openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
             
             if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
@@ -50,7 +50,7 @@ namespace AutoAlogParser
             mTagProfileText.Text = "";
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Title = "Select Tag Profile";
-            openFileDialog.InitialDirectory = ".\\";
+            openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
@@ -65,7 +65,7 @@ namespace AutoAlogParser
             mContentProfileText.Text = "";
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Title = "Select Content Profile";
-            openFileDialog.InitialDirectory = ".\\";
+            openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
@@ -248,7 +248,7 @@ namespace AutoAlogParser
             mJiraBaiscText.Text = "";
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Title = "Select Setup Profile";
-            openFileDialog.InitialDirectory = ".\\";
+            openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
@@ -271,8 +271,8 @@ namespace AutoAlogParser
         {
             mJiraCondtionText.Text = "";
             OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Title = "Select Setup Profile";
-            openFileDialog.InitialDirectory = ".\\";
+            openFileDialog.Title = "Select Condition Profile";
+            openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {

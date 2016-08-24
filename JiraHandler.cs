@@ -30,21 +30,14 @@ namespace AutoAlogParser
             mConditionList.Add(condiiton);
         }
 
-        public JiraCondition getCondition(int index)
-        {
-            foreach (JiraCondition condition in mConditionList)
-            {
-                if(condition.mIndex == index)
-                {
-                    return condition;
-                }
-            }
-            return new JiraCondition();
-        }
-
         public List<JiraCondition> getConditions()
         {
             return mConditionList;
+        }
+
+        public void resetCondition()
+        {
+            mConditionList.Clear();
         }
 
         public void reset()
@@ -53,21 +46,21 @@ namespace AutoAlogParser
             mPassword = "";
             mUrl = "";
             mFilter = "";
-            mConditionList.Clear();
+            resetCondition();
         }
     }
 
     class JiraCondition
     {
-        public int mIndex;
-        public String mAssignee;
-        public String mProject;
-        public String mSummary;
+        public String mAssignee = String.Empty;
+        public String mProject = String.Empty;
+        public String mSummary = String.Empty;
+        public String mComment = String.Empty;
         public List<string> mDescriptionList = new List<string>();
 
         public string toString()
         {
-            return "index:"+Convert.ToString(mIndex) +",assignee:"+ mAssignee+",project:"+ mProject+",summary:" + mSummary;
+            return "assignee:"+ mAssignee+",project:"+ mProject+",summary:" + mSummary+",comment:"+mComment;
         }
     }
 
@@ -89,6 +82,7 @@ namespace AutoAlogParser
         const String JIRA_PROJECT = "Project";
         const String JIRA_SUMMARY = "Summary";
         const String JIRA_DESCRIPTION = "Description";
+        const String JIRA_COMMENT = "Comment";
         //textbox
         private TextBox mUserName;
         private TextBox mPassword;
@@ -251,6 +245,7 @@ namespace AutoAlogParser
             StringBuilder sb = new StringBuilder();
             try
             {
+                mJiraProfile.resetCondition();//init
                 using (StreamReader sr = new StreamReader(profile))
                 {
                     String line;
@@ -264,12 +259,9 @@ namespace AutoAlogParser
                         if (strs.Length < 2) continue;
                         switch (strs[0])
                         {
-                            case JIRA_INDEX:
+                            case JIRA_ASSIGNEE:
                                 condition = new JiraCondition();
                                 mJiraProfile.setCondition(condition);
-                                condition.mIndex = int.Parse(strs[1]);
-                                break;
-                            case JIRA_ASSIGNEE:
                                 condition.mAssignee = strs[1];
                                 break;
                             case JIRA_PROJECT:
@@ -280,6 +272,9 @@ namespace AutoAlogParser
                                 break;
                             case JIRA_DESCRIPTION:
                                 composeDescription(condition, strs[1]);
+                                break;
+                            case JIRA_COMMENT:
+                                condition.mComment = strs[1];
                                 break;
                             default:
                                 mUtility.OutputJiraText("Undefined Text : " + strs[0]);
@@ -328,7 +323,7 @@ namespace AutoAlogParser
             //mUtility.OutputJiraText("conditionList.Count = " + conditionList.Count);
             try
             {
-                mUtility.OutputJiraText("[AutoAssign]+");
+                mUtility.OutputJiraText("Start AutoAssign ... ");
                 if (conditionList.Count == 0) throw new AlogParserException(AlogParserException.JIRA_CONDITION_IS_EMPTY);
                 foreach (IssueInfo issue in issueList)
                 {
@@ -336,7 +331,6 @@ namespace AutoAlogParser
                     {
                         if (isMatch(issue, condition))
                         {
-                            mUtility.OutputJiraText("condition.mAssignee = " + condition.mAssignee);
                             mUtility.OutputJiraTextContinue(String.Format("Start Assign issue [{0}] to {1} ... ", issue.key, condition.mAssignee));
                             issue.assign(condition.mAssignee);
                             mUtility.OutputJiraText("Done");
@@ -345,7 +339,9 @@ namespace AutoAlogParser
                     }
                     //if (VDBG) mUtility.OutputJiraText(issue.Key + " " + issue.Summary);
                 }
-            }catch (Exception ex)
+                mUtility.OutputJiraText("Done.");
+            }
+            catch (Exception ex)
             {
                 mUtility.OutputJiraText(String.Format("Auto Assign Stop. ex = {0} \n" ,ex.Message));
                 return;
@@ -355,25 +351,28 @@ namespace AutoAlogParser
 
         private bool isMatch(IssueInfo issue, JiraCondition condition)
         {
-            mUtility.OutputJiraText("[isMatch]+");
+            if (issue==null || condition == null) return false;
             if (condition.mSummary!=String.Empty && condition.mProject!=String.Empty &&
                 issue.summary.IndexOf(condition.mSummary, StringComparison.OrdinalIgnoreCase) >= 0 &&
                 condition.mProject == issue.project)
             {
-                mUtility.OutputJiraText(String.Format("[isMatch] project = {0} , summary = {1}", issue.project, issue.summary));
+#pragma warning disable CS0162
+                if (VDBG) mUtility.OutputJiraText(String.Format("[isMatch] project = {0} , summary = {1}", issue.project, issue.summary));
+#pragma warning restore CS0162
                 Trace.WriteLine(String.Format("[isMatch] project = {0} , summary = {1}",issue.project,issue.summary));
                 return true;
             }
-            else if (condition.mDescriptionList.Count > 0 && issue.summary != String.Empty)
+            else if (condition.mDescriptionList.Count > 0 && issue.description != String.Empty)
             {
                 for(int i=0; i< condition.mDescriptionList.Count; ++i)
                 {
                     string description = condition.mDescriptionList[i];
                     if (issue.description.IndexOf(description) >= 0)
                     {
-                        mUtility.OutputJiraText(String.Format("[isMatch] description = {0}\n", description));
-                        Trace.WriteLine(String.Format("[isMatch] description = {0}\n", description));
-                        Trace.WriteLine("[isMatch] issue.description = "+issue.description+"\n");
+#pragma warning disable CS0162
+                        if (VDBG) mUtility.OutputJiraText(String.Format("[isMatch] description = {0}\n", description));
+#pragma warning restore CS0162
+                        Trace.WriteLine("[isMatch] issue.description = "+issue.description+ ", description = "+ description);
                         return true;
                     }
                 }
