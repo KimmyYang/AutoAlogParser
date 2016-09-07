@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using System.IO;
 using SevenZip;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Diagnostics;
 
 namespace AutoAlogParser
@@ -18,15 +16,7 @@ namespace AutoAlogParser
 
         private Utility()
         {
-            //Assembly dll = Assembly.LoadFrom(@"E:\Code\VisualStuidio_Project\AutoAlogParser\AutoAlogParser\bin\Release\lib\SevenZipSharp.dll");
-            //var type = dll.GetType("SevenZipSharp.SevenZipExtractor");
-            // cls = Activator.CreateInstance(type);
-            //var method = type.GetMethod("SetLibraryPath");
-            //method.Invoke(cls, new object[] { "lib\\7z.dll" });
-            //no implememnt
-            //SevenZipExtractor.SetLibraryPath(@"E:\Code\VisualStuidio_Project\AutoAlogParser\AutoAlogParser\lib\7z.dll");
             SevenZipExtractor.SetLibraryPath("7z.dll");
-            //SevenZipCompressor.SetLibraryPath(@"E:\Code\VisualStuidio_Project\AutoAlogParser\AutoAlogParser\lib\7z.dll");
             SevenZipCompressor.SetLibraryPath("7z.dll");
         }
 
@@ -93,28 +83,103 @@ namespace AutoAlogParser
 
         /*
          * extract all the compress files in specific directory(sourcePath) and output to targetPath
+         * ex. source : rootFolder/subFolder1/subFolder2/file.zip
+         *     target : rootFolder/subFolder1/subFolder2/file/file.txt
          */
         public void ExtractCompressFilesInDir(string sourcePath, string targetPath)
         {
             string[] files = Directory.GetFiles(sourcePath);
             foreach (string file in files)
             {
-                if(file.ToLower().EndsWith("zip") || file.ToLower().EndsWith("7z") || file.ToLower().EndsWith("rar") || file.ToLower().EndsWith("7z.001"))
+                if(isZipFile(file))
                 {
-                    ExtractArchive(file, targetPath);
+                    Trace.WriteLine("[ExtractCompressFilesInDir] file = " + file);
+                    ExtractArchive(file, targetPath==null? getTargetFolder(file) : targetPath);
                 }
             }
         }
 
         /*
-         * extract single file
+         * call when extract file only
+         * create the extract target folder
+         * source : rootFolder/File.zip
+         * target : File
+        */
+        private string getTargetFolder(string source)
+        {
+            string rootFolder = String.Empty;
+            string targetFolder = source;
+            try {
+                string[] strs = splitString(source, '\\'); //ex. rootFolder\File.zip
+                if (strs.Length >= 2)
+                {//has rootFolder
+                    rootFolder = splitString(source, strs[strs.Length - 1])[0]; //ex. rootFolder\
+                    strs = splitString(strs[strs.Length - 1], '.');
+                }
+                else
+                {//no rootFolder
+                    strs = splitString(source, '.');
+                }
+                if (strs.Length > 0) targetFolder = strs[0];
+                targetFolder = rootFolder != String.Empty ? rootFolder + targetFolder : targetFolder;
+
+                //Trace.WriteLine("[getTargetFolder] source = " + source);
+                //Trace.WriteLine("[getTargetFolder] rootFolder = " + rootFolder);
+                Trace.WriteLine("[getTargetFolder] targetFolder = " + targetFolder);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine("[getTargetFolder] ex = " + ex.Message);
+            }
+            return targetFolder;
+        }
+
+        /*
+         * extract single file to directory
+         * source : Compress File
+         * target : dest folder
          */
         public void ExtractArchive(string source, string target)
         {
-            using (var file = new SevenZipExtractor(source))
+            try
             {
-                file.ExtractArchive(target);
+                if (!Directory.Exists(target))
+                {
+                    CreateFolder(target);
+                    using (var file = new SevenZipExtractor(source))
+                    {
+                        file.ExtractArchive(target);
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                OutputJiraText("[ExtractArchive] ex = " + ex.Message);
+                OutputText("[ExtractArchive] ex = " + ex.Message);
+            }
+        }
+
+        private string getExtractFileName(string source)
+        {
+            string[] strs = splitString(source, '\\');
+            if (strs.Length >= 2)
+            {
+                if (isZipFile(strs[1])){
+                    strs = splitString(strs[1], '.');
+                    source = strs[0];
+                }
+            }
+            return source;
+        }
+
+        private bool isZipFile(string file)
+        {
+            if (file.ToLower().EndsWith("zip") || file.ToLower().EndsWith("7z") ||
+                file.ToLower().EndsWith("rar") || file.ToLower().EndsWith("7z.001"))
+            {
+                return true;
+            }
+            return false;
         }
 
         public void CreateFolder(string folder)
@@ -159,6 +224,19 @@ namespace AutoAlogParser
             }
             Trace.WriteLine("[GetSubFileCount] count = " + count);
             return count;
+        }
+
+        //string related
+        private string[] splitString(string str, char delim)
+        {
+            string[] strs = str.Split(delim);
+            return strs;
+        }
+
+        private string[] splitString(string str, string delim)
+        {
+            string[] strs = str.Split(new string[] { delim }, StringSplitOptions.None);
+            return strs;
         }
     }
 }

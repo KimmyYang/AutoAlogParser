@@ -443,7 +443,7 @@ namespace AutoAlogParser
             if (!mUtility.isEmptyDirectory(issueKey))
             {
                 mUtility.OutputJiraTextContinue(String.Format("Start extract attachments to ./{0} ... ", issueKey));
-                mUtility.ExtractCompressFilesInDir(issueKey, issueKey);
+                mUtility.ExtractCompressFilesInDir(issueKey, null);
                 mUtility.OutputJiraText("Extract Done");
             }
             else
