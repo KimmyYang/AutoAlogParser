@@ -34,15 +34,18 @@ namespace AutoAlogParser
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AlogParser));
             this.AlogParserTabControl = new System.Windows.Forms.TabControl();
             this.mParserTab = new System.Windows.Forms.TabPage();
+            this.mParserCrashCheckBox = new System.Windows.Forms.CheckBox();
+            this.mParserAnrCheckBox = new System.Windows.Forms.CheckBox();
+            this.mContentFilterCheckBox = new System.Windows.Forms.CheckBox();
             this.mMergeSizeText = new System.Windows.Forms.TextBox();
             this.mMergeBtn = new System.Windows.Forms.Button();
             this.mMergeSizeLabel = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.mLoadDefaultCB = new System.Windows.Forms.CheckBox();
             this.mOrCheckBox = new System.Windows.Forms.CheckBox();
-            this.mContentFilterCheckBox = new System.Windows.Forms.CheckBox();
+            this.mContentProfileCheckBox = new System.Windows.Forms.CheckBox();
             this.mContentProfileBtn = new System.Windows.Forms.Button();
-            this.mContentProfileText = new System.Windows.Forms.TextBox();
+            this.mContentText = new System.Windows.Forms.TextBox();
             this.LogTypeText = new System.Windows.Forms.TextBox();
             this.mLogTypeFilterCheckBox = new System.Windows.Forms.CheckBox();
             this.mTagProfileBtn = new System.Windows.Forms.Button();
@@ -105,15 +108,18 @@ namespace AutoAlogParser
             // 
             // mParserTab
             // 
+            this.mParserTab.Controls.Add(this.mParserCrashCheckBox);
+            this.mParserTab.Controls.Add(this.mParserAnrCheckBox);
+            this.mParserTab.Controls.Add(this.mContentFilterCheckBox);
             this.mParserTab.Controls.Add(this.mMergeSizeText);
             this.mParserTab.Controls.Add(this.mMergeBtn);
             this.mParserTab.Controls.Add(this.mMergeSizeLabel);
             this.mParserTab.Controls.Add(this.label1);
             this.mParserTab.Controls.Add(this.mLoadDefaultCB);
             this.mParserTab.Controls.Add(this.mOrCheckBox);
-            this.mParserTab.Controls.Add(this.mContentFilterCheckBox);
+            this.mParserTab.Controls.Add(this.mContentProfileCheckBox);
             this.mParserTab.Controls.Add(this.mContentProfileBtn);
-            this.mParserTab.Controls.Add(this.mContentProfileText);
+            this.mParserTab.Controls.Add(this.mContentText);
             this.mParserTab.Controls.Add(this.LogTypeText);
             this.mParserTab.Controls.Add(this.mLogTypeFilterCheckBox);
             this.mParserTab.Controls.Add(this.mTagProfileBtn);
@@ -142,10 +148,44 @@ namespace AutoAlogParser
             this.mParserTab.Text = "Log Parser";
             this.mParserTab.UseVisualStyleBackColor = true;
             // 
+            // mParserCrashCheckBox
+            // 
+            this.mParserCrashCheckBox.AutoSize = true;
+            this.mParserCrashCheckBox.Font = new System.Drawing.Font("Georgia", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.mParserCrashCheckBox.Location = new System.Drawing.Point(450, 198);
+            this.mParserCrashCheckBox.Name = "mParserCrashCheckBox";
+            this.mParserCrashCheckBox.Size = new System.Drawing.Size(105, 20);
+            this.mParserCrashCheckBox.TabIndex = 63;
+            this.mParserCrashCheckBox.Text = "Parser Crash";
+            this.mParserCrashCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // mParserAnrCheckBox
+            // 
+            this.mParserAnrCheckBox.AutoSize = true;
+            this.mParserAnrCheckBox.Font = new System.Drawing.Font("Georgia", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.mParserAnrCheckBox.Location = new System.Drawing.Point(345, 198);
+            this.mParserAnrCheckBox.Name = "mParserAnrCheckBox";
+            this.mParserAnrCheckBox.Size = new System.Drawing.Size(99, 20);
+            this.mParserAnrCheckBox.TabIndex = 62;
+            this.mParserAnrCheckBox.Text = "Parser ANR";
+            this.mParserAnrCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // mContentFilterCheckBox
+            // 
+            this.mContentFilterCheckBox.AutoSize = true;
+            this.mContentFilterCheckBox.Font = new System.Drawing.Font("Georgia", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.mContentFilterCheckBox.Location = new System.Drawing.Point(226, 198);
+            this.mContentFilterCheckBox.Name = "mContentFilterCheckBox";
+            this.mContentFilterCheckBox.Size = new System.Drawing.Size(113, 20);
+            this.mContentFilterCheckBox.TabIndex = 61;
+            this.mContentFilterCheckBox.Text = "Content Filter";
+            this.mContentFilterCheckBox.UseVisualStyleBackColor = true;
+            this.mContentFilterCheckBox.CheckedChanged += new System.EventHandler(this.ContentFilterCheckBox_CheckedChanged);
+            // 
             // mMergeSizeText
             // 
             this.mMergeSizeText.Font = new System.Drawing.Font("Georgia", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.mMergeSizeText.Location = new System.Drawing.Point(15, 281);
+            this.mMergeSizeText.Location = new System.Drawing.Point(15, 290);
             this.mMergeSizeText.Name = "mMergeSizeText";
             this.mMergeSizeText.Size = new System.Drawing.Size(72, 25);
             this.mMergeSizeText.TabIndex = 60;
@@ -153,7 +193,7 @@ namespace AutoAlogParser
             // mMergeBtn
             // 
             this.mMergeBtn.Font = new System.Drawing.Font("Georgia", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.mMergeBtn.Location = new System.Drawing.Point(95, 245);
+            this.mMergeBtn.Location = new System.Drawing.Point(93, 258);
             this.mMergeBtn.Name = "mMergeBtn";
             this.mMergeBtn.Size = new System.Drawing.Size(120, 65);
             this.mMergeBtn.TabIndex = 59;
@@ -165,7 +205,7 @@ namespace AutoAlogParser
             // 
             this.mMergeSizeLabel.AutoSize = true;
             this.mMergeSizeLabel.Font = new System.Drawing.Font("Georgia", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.mMergeSizeLabel.Location = new System.Drawing.Point(12, 245);
+            this.mMergeSizeLabel.Location = new System.Drawing.Point(12, 254);
             this.mMergeSizeLabel.MaximumSize = new System.Drawing.Size(110, 40);
             this.mMergeSizeLabel.MinimumSize = new System.Drawing.Size(110, 35);
             this.mMergeSizeLabel.Name = "mMergeSizeLabel";
@@ -209,22 +249,22 @@ namespace AutoAlogParser
             this.mOrCheckBox.Text = "OR";
             this.mOrCheckBox.UseVisualStyleBackColor = true;
             // 
-            // mContentFilterCheckBox
+            // mContentProfileCheckBox
             // 
-            this.mContentFilterCheckBox.AutoSize = true;
-            this.mContentFilterCheckBox.Font = new System.Drawing.Font("Georgia", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.mContentFilterCheckBox.Location = new System.Drawing.Point(102, 208);
-            this.mContentFilterCheckBox.Name = "mContentFilterCheckBox";
-            this.mContentFilterCheckBox.Size = new System.Drawing.Size(113, 20);
-            this.mContentFilterCheckBox.TabIndex = 53;
-            this.mContentFilterCheckBox.Text = "Content Filter";
-            this.mContentFilterCheckBox.UseVisualStyleBackColor = true;
-            this.mContentFilterCheckBox.CheckedChanged += new System.EventHandler(this.mContentFilterCheckBox_CheckedChanged);
+            this.mContentProfileCheckBox.AutoSize = true;
+            this.mContentProfileCheckBox.Font = new System.Drawing.Font("Georgia", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.mContentProfileCheckBox.Location = new System.Drawing.Point(100, 198);
+            this.mContentProfileCheckBox.Name = "mContentProfileCheckBox";
+            this.mContentProfileCheckBox.Size = new System.Drawing.Size(120, 20);
+            this.mContentProfileCheckBox.TabIndex = 53;
+            this.mContentProfileCheckBox.Text = "Content Profile";
+            this.mContentProfileCheckBox.UseVisualStyleBackColor = true;
+            this.mContentProfileCheckBox.CheckedChanged += new System.EventHandler(this.ContentProfileCheckBox_CheckedChanged);
             // 
             // mContentProfileBtn
             // 
             this.mContentProfileBtn.Font = new System.Drawing.Font("Georgia", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.mContentProfileBtn.Location = new System.Drawing.Point(555, 203);
+            this.mContentProfileBtn.Location = new System.Drawing.Point(555, 218);
             this.mContentProfileBtn.Name = "mContentProfileBtn";
             this.mContentProfileBtn.Size = new System.Drawing.Size(89, 33);
             this.mContentProfileBtn.TabIndex = 52;
@@ -232,14 +272,15 @@ namespace AutoAlogParser
             this.mContentProfileBtn.UseVisualStyleBackColor = true;
             this.mContentProfileBtn.Click += new System.EventHandler(this.ContentProfileBtn_Click);
             // 
-            // mContentProfileText
+            // mContentText
             // 
-            this.mContentProfileText.Font = new System.Drawing.Font("Georgia", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.mContentProfileText.Location = new System.Drawing.Point(219, 206);
-            this.mContentProfileText.Name = "mContentProfileText";
-            this.mContentProfileText.Size = new System.Drawing.Size(330, 25);
-            this.mContentProfileText.TabIndex = 51;
-            this.mContentProfileText.TextChanged += new System.EventHandler(this.mContentProfileText_TextChanged);
+            this.mContentText.Font = new System.Drawing.Font("Georgia", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.mContentText.Location = new System.Drawing.Point(100, 224);
+            this.mContentText.Name = "mContentText";
+            this.mContentText.Size = new System.Drawing.Size(449, 25);
+            this.mContentText.TabIndex = 51;
+            this.mContentText.TextChanged += new System.EventHandler(this.ContentProfileText_TextChanged);
+            this.mContentText.GotFocus += new System.EventHandler(this.ContentProfileText_GotFocus);
             // 
             // LogTypeText
             // 
@@ -285,7 +326,7 @@ namespace AutoAlogParser
             // mResetBtn
             // 
             this.mResetBtn.Font = new System.Drawing.Font("Georgia", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.mResetBtn.Location = new System.Drawing.Point(220, 245);
+            this.mResetBtn.Location = new System.Drawing.Point(219, 258);
             this.mResetBtn.Name = "mResetBtn";
             this.mResetBtn.Size = new System.Drawing.Size(130, 65);
             this.mResetBtn.TabIndex = 44;
@@ -416,18 +457,18 @@ namespace AutoAlogParser
             // 
             // mParserStatusConsole
             // 
-            this.mParserStatusConsole.Location = new System.Drawing.Point(4, 316);
+            this.mParserStatusConsole.Location = new System.Drawing.Point(4, 329);
             this.mParserStatusConsole.Name = "mParserStatusConsole";
-            this.mParserStatusConsole.Size = new System.Drawing.Size(645, 444);
+            this.mParserStatusConsole.Size = new System.Drawing.Size(645, 431);
             this.mParserStatusConsole.TabIndex = 26;
             this.mParserStatusConsole.Text = "";
             // 
             // StartParserBtn
             // 
             this.StartParserBtn.Font = new System.Drawing.Font("Georgia", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.StartParserBtn.Location = new System.Drawing.Point(355, 245);
+            this.StartParserBtn.Location = new System.Drawing.Point(355, 258);
             this.StartParserBtn.Name = "StartParserBtn";
-            this.StartParserBtn.Size = new System.Drawing.Size(289, 65);
+            this.StartParserBtn.Size = new System.Drawing.Size(288, 65);
             this.StartParserBtn.TabIndex = 25;
             this.StartParserBtn.Text = "Start Paraser";
             this.StartParserBtn.UseVisualStyleBackColor = true;
@@ -680,7 +721,6 @@ namespace AutoAlogParser
             // 
             // mAutoParserIssueBtn
             // 
-            this.mAutoParserIssueBtn.Enabled = false;
             this.mAutoParserIssueBtn.Font = new System.Drawing.Font("Georgia", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.mAutoParserIssueBtn.Location = new System.Drawing.Point(523, 232);
             this.mAutoParserIssueBtn.Name = "mAutoParserIssueBtn";
@@ -724,7 +764,7 @@ namespace AutoAlogParser
             this.Controls.Add(this.AlogParserTabControl);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "AlogParser";
-            this.Text = "Alog Parser V1.0 Beta";
+            this.Text = "Alog Parser V2.2";
             this.AlogParserTabControl.ResumeLayout(false);
             this.mParserTab.ResumeLayout(false);
             this.mParserTab.PerformLayout();
@@ -782,14 +822,17 @@ namespace AutoAlogParser
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.TextBox LogTypeText;
         private System.Windows.Forms.Button mContentProfileBtn;
-        private System.Windows.Forms.TextBox mContentProfileText;
+        private System.Windows.Forms.TextBox mContentText;
         private System.Windows.Forms.CheckBox mOrCheckBox;
-        private System.Windows.Forms.CheckBox mContentFilterCheckBox;
+        private System.Windows.Forms.CheckBox mContentProfileCheckBox;
         private System.Windows.Forms.CheckBox mLoadDefaultCB;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label mMergeSizeLabel;
         private System.Windows.Forms.TextBox mMergeSizeText;
         private System.Windows.Forms.Button mMergeBtn;
+        private System.Windows.Forms.CheckBox mContentFilterCheckBox;
+        private System.Windows.Forms.CheckBox mParserCrashCheckBox;
+        private System.Windows.Forms.CheckBox mParserAnrCheckBox;
     }
 }
 

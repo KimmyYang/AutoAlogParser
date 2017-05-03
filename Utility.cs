@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using System.IO;
 using SevenZip;
 using System.Diagnostics;
+using System.IO.Compression;
 
 namespace AutoAlogParser
 {
@@ -71,8 +72,16 @@ namespace AutoAlogParser
                 foreach (var inputFilePath in inputList)
                 {
                     //OutputText("[MergeBtn_Click] merger : " + inputFilePath);
+                    Trace.WriteLine("inputFilePath " + inputFilePath);
                     using (var inputStream = File.OpenRead(inputFilePath))
                     {
+                        /*string fileContents;
+                        using (StreamReader reader = new StreamReader(inputStream))
+                        {
+                            fileContents = reader.ReadToEnd();
+                            Trace.WriteLine("str : " + fileContents);
+                        }*/
+
                         // Buffer size can be passed as the second argument.
                         inputStream.CopyTo(outputStream);
                     }
@@ -88,12 +97,13 @@ namespace AutoAlogParser
          */
         public void ExtractCompressFilesInDir(string sourcePath, string targetPath)
         {
+            //Trace.WriteLine("ExtractCompressFilesInDir: sourcePath = " + sourcePath + " targetPath = " + targetPath);
             string[] files = Directory.GetFiles(sourcePath);
             foreach (string file in files)
             {
                 if(isZipFile(file))
                 {
-                    Trace.WriteLine("[ExtractCompressFilesInDir] file = " + file);
+                    Trace.WriteLine("ExtractCompressFilesInDir: file = " + file);
                     ExtractArchive(file, targetPath==null? getTargetFolder(file) : targetPath);
                 }
             }
@@ -143,6 +153,7 @@ namespace AutoAlogParser
         {
             try
             {
+                //Trace.WriteLine("ExtractArchive: source =  " + source + " target = " + target);
                 if (!Directory.Exists(target))
                 {
                     CreateFolder(target);
@@ -156,6 +167,36 @@ namespace AutoAlogParser
             {
                 OutputJiraText("[ExtractArchive] ex = " + ex.Message);
                 OutputText("[ExtractArchive] ex = " + ex.Message);
+            }
+        }
+
+        public void ExtractGzArchive(string source)
+        {
+            GZipStream decompressFile = null;
+            try
+            {
+                //Trace.WriteLine("ExtractGzArchive: source =  " + source + " target = " + target);
+                FileStream orgFS = File.OpenRead(source);
+                //string extention = Path.GetExtension(source);
+                //string target = source.Substring(0, source.Length - extention.Length);
+                string target = filterExtention(source);
+                FileStream newFS = File.Create(target);
+                Trace.WriteLine("ExtractGzArchive: source =  " + source + " target = " + target);
+                using (decompressFile = new GZipStream(orgFS, System.IO.Compression.CompressionMode.Decompress))
+                {
+                    decompressFile.CopyTo(newFS);
+                    orgFS.Close(); newFS.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                //OutputJiraText("ExtractGzArchive: ex = " + ex.Message);
+                //OutputText("ExtractGzArchive: ex = " + ex.Message);
+                Trace.WriteLine("ExtractGzArchive: ex = " + ex.Message);
+            }
+            finally
+            {
+                if(decompressFile!=null)decompressFile.Close();
             }
         }
 
@@ -226,8 +267,27 @@ namespace AutoAlogParser
             return count;
         }
 
+        public DateTime UnixTimeStampToDateTime(double unixTimeStamp)
+        {
+            DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            try {
+                // Unix timestamp is seconds past epoch
+                dateTime = dateTime.AddMilliseconds(unixTimeStamp).ToLocalTime();
+            }catch(Exception ex)
+            {
+                Trace.WriteLine("UnixTimeStampToDateTime: ex = " + ex);
+            }
+            return dateTime;
+        }
+
+        public string filterExtention(string fileName)
+        {
+            string extention = Path.GetExtension(fileName);
+            return fileName.Substring(0, fileName.Length - extention.Length);
+        }
+
         //string related
-        private string[] splitString(string str, char delim)
+        public string[] splitString(string str, char delim)
         {
             string[] strs = str.Split(delim);
             return strs;

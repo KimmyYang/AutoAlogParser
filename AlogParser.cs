@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
 using System.IO;
+using System.Text;
 
 namespace AutoAlogParser
 {
@@ -36,6 +37,22 @@ namespace AutoAlogParser
                 mJirHandler.initTextInfo(mUserNameText, mPasswordText, mIssueFilterText, mJiraBaiscText, mJiraCondtionText, mIssueKeyText);
                 mJirHandler.setParser(this);
             }
+        }
+
+        private string loadDropboxSelection()
+        {
+            string strArguments = String.Empty;
+            //anr
+            if (mParserAnrCheckBox.Checked)
+            {
+                strArguments += " -anr ";
+            }
+            //crash
+            if (mParserCrashCheckBox.Checked)
+            {
+                strArguments += " -crash ";
+            }
+            return strArguments;
         }
 
         private string loadUserSelection()
@@ -87,16 +104,20 @@ namespace AutoAlogParser
                     outputArguments += mTagFilterCheckBox.Text + ":" + mTagText.Text + "\n";
                 }
             }
-            if (mContentFilterCheckBox.Checked)
+            if (mContentFilterCheckBox.Checked && mContentText.Text != String.Empty)
             {
-                if(mContentProfileText.Text != String.Empty){
-                    strArguments += " -c " + mContentProfileText.Text;
-                    outputArguments += mContentFilterCheckBox.Text + ":" + mContentProfileText.Text + "\n";
-                }
+                strArguments += " -c " + mContentText.Text;
+                outputArguments += mContentProfileCheckBox.Text + ":" + mContentText.Text + "\n";
+
+            }else if(mContentProfileCheckBox.Checked && mContentText.Text != String.Empty)//profile
+            {
+                strArguments += " -cp " + mContentText.Text;
+                outputArguments += mContentProfileCheckBox.Text + ":" + mContentText.Text + "\n";
             }
+
             //condition
             //"-or" worked when tag and content are all checked
-            if (mOrCheckBox.Checked && mTagFilterCheckBox.Checked && mContentFilterCheckBox.Checked)
+            if (mOrCheckBox.Checked && mTagFilterCheckBox.Checked && mContentProfileCheckBox.Checked)
             {
                 strArguments += " -or";
                 outputArguments += " -or";
@@ -107,11 +128,23 @@ namespace AutoAlogParser
 
         public void Parser(string file)
         {
-            string userSelection = loadUserSelection();
-            if (userSelection == String.Empty)
+            /*chose log or dropbox log*/
+            string userSelection = loadDropboxSelection();
+            if(userSelection != String.Empty)
             {
-                Trace.WriteLine("No any user selection, no need to parser.");
-                mUtility.OutputText("No any user selection, no need to parser.");
+                ParserDropboxLog(file, userSelection);
+            }else{
+                ParserLog(file, loadUserSelection());
+            }
+        }
+
+        private void ParserLog(string file, string userSelection)
+        {
+            if (file == String.Empty || userSelection == String.Empty)
+            {
+                String str = "No Input File or User Selection. Can't Parser.";
+                Trace.WriteLine(str);
+                mUtility.OutputText(str);
                 return;
             }
             int result = mAdapter.Parser(file, userSelection);
@@ -123,6 +156,88 @@ namespace AutoAlogParser
             else
             {
                 mUtility.OutputText("Parser Error : " + result);
+            }
+        }
+
+        private void ParserDropboxLog(string path, string selection)
+        {
+            extractDropBoxLog(path, selection);
+            var packageName = getPackageList(path, selection);
+            String str  = String.Empty;
+            if(packageName.Count > 0)
+            {
+                foreach(string name in packageName)
+                {
+                    str += name + "\n";
+                }
+            }else{
+                str = "Can't Parser the Dropbox Log. " + selection;
+            }
+            mUtility.OutputText(str);
+        }
+
+        private List<string> getPackageList(string path, string selection)
+        {
+            var packageName = new List<string>();
+            foreach (string file in Directory.EnumerateFiles(path, "*.txt"))
+            {
+                if ((selection.IndexOf("anr") > 0 && file.IndexOf("system_app_anr") > 0) ||
+                    (selection.IndexOf("crash") > 0 && file.IndexOf("system_app_crash") > 0))
+                {
+                    const Int32 BufferSize = 128;
+                    using (var fileStream = File.OpenRead(file))
+                    {
+                        using (var streamReader = new StreamReader(fileStream, Encoding.UTF8, true, BufferSize))
+                        {
+                            String line;
+                            while ((line = streamReader.ReadLine()) != null)
+                            {
+                                string[] tokens = mUtility.splitString(line, ':');
+                                if (tokens.Length >= 2 && tokens[0] == "Process")
+                                {
+                                    string fileName = Path.GetFileName(file);
+                                    string date = getTimeFromDroboxLog(fileName);
+                                    packageName.Add(fileName + " ("+ date+") : " +tokens[1]);
+                                }
+                                break;
+                            }
+                            streamReader.Close();
+                        }
+                        fileStream.Close();
+                    }
+                }
+            }
+            return packageName;
+        }
+
+        private string getTimeFromDroboxLog(string fileName)
+        {
+            string[] tokens = mUtility.splitString(fileName, '@');
+            if(tokens!=null && tokens.Length == 2)
+            {
+                tokens[1] = mUtility.filterExtention(tokens[1]);
+                //Trace.WriteLine("tokens[1] = " + tokens[1]);
+                DateTime date =  mUtility.UnixTimeStampToDateTime(Convert.ToDouble(tokens[1]));
+                return date.ToString("yyyy-MM-dd HH:mm:ss");
+            }
+            return "No Time";
+        }
+
+        private void extractDropBoxLog(string path, string selection)
+        {
+            if (path == String.Empty)
+            {
+                mUtility.OutputText("No Input Path.");
+                return;
+            }
+            foreach (string file in Directory.EnumerateFiles(path, "*.gz"))
+            {
+                if ((selection.IndexOf("anr") > 0 && file.IndexOf("system_app_anr") > 0) ||
+                    (selection.IndexOf("crash") > 0 && file.IndexOf("system_app_crash") > 0))
+                {
+                    mUtility.ExtractGzArchive(file);
+                    //mUtility.OutputText(file);
+                }
             }
         }
 
@@ -166,7 +281,7 @@ namespace AutoAlogParser
         private void mergeAlogRadio(string path)
         {
             mUtility.SortStrListDecrease(mAlogRadioList);
-
+            //moveLog(mAlogRadioList, "alog_radio", 0);
             string outputAlogFile = path;
             string outputRadioFile;
             char lastChar = outputAlogFile[outputAlogFile.Length - 1];
@@ -184,6 +299,7 @@ namespace AutoAlogParser
         {
             int DEFAULT_MAX_SIZE = 300;//default log not bigger than 300MB
             mUtility.SortStrListDecrease(mAlogList);//sort
+            moveLog(mAlogRadioList, "alog", 0);
             string ALOG_OUTPUT_NAME = path+"\\alog_merge";
             long MAX_SIZE = -1;
             if (mMergeSizeText.Text != String.Empty)
@@ -233,6 +349,14 @@ namespace AutoAlogParser
             }
         }
 
+        private void moveLog(List<String> list, string log, int pos)
+        {
+            if (list.Contains(log)) { 
+                list.RemoveAll(elem => elem.Equals(log));
+                list.Insert(pos, log);
+            }
+        }
+
         private void reset()
         {
             mStartTimeText.Text = String.Empty;
@@ -242,17 +366,21 @@ namespace AutoAlogParser
             mTagText.Text = String.Empty;
             mTagProfileText.Text = String.Empty;
             mFilePathText.Text = String.Empty;
-            mContentProfileText.Text = String.Empty;
+            mContentText.Text = String.Empty;
             mTimeFilterCheckBox.Checked = false;
             mTagFilterCheckBox.Checked = false;
             mTIDFilterCheckBox.Checked = false;
             mPIDFilterCheckBox.Checked = false;
             mLoadDefaultCB.Checked = false;
             mContentFilterCheckBox.Checked = false;
+            mContentProfileCheckBox.Checked = false;
             //mOrCheckBox.Checked = false;
             mAlogList.Clear();
             mAlogRadioList.Clear();
             mUtility.clearStatusConsole();
+            //20170503
+            mParserAnrCheckBox.Checked = false;
+            mParserCrashCheckBox.Checked = false;
         }
     }
 }

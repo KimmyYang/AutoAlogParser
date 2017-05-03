@@ -13,6 +13,8 @@ namespace AutoAlogParser
         private Utility mUtility = null;
         private static AlogParserAdapter mInstance = null;
         private Process mAlogParserProcess = null;
+        private const string ALOG_PARSER_BINARY_NAME = "AlogParser.exe";
+        private const int GENERIC_FAILURE_CODE = -1;
 
         private AlogParserAdapter()
         {
@@ -26,35 +28,57 @@ namespace AutoAlogParser
             return mInstance;
         }
 
-        public int Parser(string file, string userSelection)
+        private ProcessStartInfo getProcessInfo()
         {
-            int result = -1;//generic failure
-            string fileName = file;
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.CreateNoWindow = false;
             startInfo.UseShellExecute = false;
-            startInfo.FileName = "AlogParser.exe";
+            startInfo.FileName = ALOG_PARSER_BINARY_NAME;
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;
             startInfo.CreateNoWindow = true;
+            startInfo.RedirectStandardOutput = true;
+            return startInfo;
+        }
+
+        public int Parser(string file, string userSelection)
+        {
+            string fileName = file;
+            ProcessStartInfo startInfo = getProcessInfo();
             startInfo.Arguments = userSelection + " -f \"" + fileName + "\"";
-            //mUtility.OutputText("startInfo.Arguments =" + startInfo.Arguments);
             Trace.WriteLine("startInfo.Arguments =" + startInfo.Arguments);
+
             if (fileName == String.Empty || !File.Exists(fileName))
             {
-                mUtility.OutputText("Please choose the valid log file ...");
-                return result;
+                mUtility.OutputText("Please Choose the Valid Log File ...");
+                return GENERIC_FAILURE_CODE;
             }
+            mUtility.OutputText("Start Parser : " + fileName);
+            return run(startInfo);
+        }
 
+        public int GetVersion()
+        {
+            ProcessStartInfo startInfo = getProcessInfo();
+            startInfo.Arguments = "-v";
+            return run(startInfo);
+        }
+
+        private int run(ProcessStartInfo startInfo)
+        {
+            int result = GENERIC_FAILURE_CODE;
             try
             {
-                mUtility.OutputText("Start Parser : " + fileName);
                 mAlogParserProcess = Process.Start(startInfo);
+                while (!mAlogParserProcess.StandardOutput.EndOfStream)
+                {//output AlogParser's log to screen
+                    mUtility.OutputText(mAlogParserProcess.StandardOutput.ReadLine());
+                }
                 mAlogParserProcess.WaitForExit();
             }
             catch (Exception ex)
             {
                 // Log error.
-                mUtility.OutputText("call AlogParser error : " + ex);
+                mUtility.OutputText("run AlogParser error : " + ex);
                 return result;
             }
             finally

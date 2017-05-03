@@ -325,6 +325,8 @@ namespace AutoAlogParser
             {
                 mUtility.OutputJiraText("Start AutoAssign ... ");
                 if (conditionList.Count == 0) throw new AlogParserException(AlogParserException.JIRA_CONDITION_IS_EMPTY);
+                else if (issueList.Count == 0) throw new AlogParserException(AlogParserException.JIRA_QUERY_NO_ISSUE);
+
                 foreach (IssueInfo issue in issueList)
                 {
                     foreach (JiraCondition condition in conditionList)
@@ -409,6 +411,19 @@ namespace AutoAlogParser
             {
                 mUtility.OutputJiraText(ex.Message);
             }
+        }
+
+        public void TransferIssue()
+        {
+            List<IssueInfo> issueList = queryIssue(mIssueFilter.Text == String.Empty ? mJiraProfile.mFilter : mIssueFilter.Text);
+            if (issueList.Count == 0) throw new AlogParserException(AlogParserException.JIRA_QUERY_NO_ISSUE);
+
+            Trace.WriteLine("start TransferIssue");
+            foreach (IssueInfo issue in issueList)
+            {
+                issue.transfer("Defer the Case");
+            }
+            Trace.WriteLine("end TransferIssue");
         }
 
         private List<IssueInfo> queryIssue(string condition)

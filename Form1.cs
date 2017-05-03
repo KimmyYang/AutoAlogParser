@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using System.IO;
 using System.Drawing;
 using System.Diagnostics;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace AutoAlogParser
 {
@@ -35,26 +36,28 @@ namespace AutoAlogParser
         private void OpenFileBtn_Click(object sender, EventArgs e)
         {
             mFilePathText.Text = "";
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Title = "Select Log";
-            openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
-            
-            if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            CommonOpenFileDialog dialog = new CommonOpenFileDialog();
+            //dialog.InitialDirectory = Directory.GetCurrentDirectory();
+            //dialog.Multiselect = true;
+            //dialog.AllowNonFileSystemItems = true;
+            //dialog.IsFolderPicker = true;
+            dialog.RestoreDirectory = true;
+
+            if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                mFilePathText.AppendText(openFileDialog.FileName);
+                mFilePathText.AppendText(dialog.FileName);
             }
         }
 
         private void OpenProfileBtn_Click(object sender, EventArgs e)
         {
             mTagProfileText.Text = "";
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Title = "Select Tag Profile";
-            openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
+            CommonOpenFileDialog dialog = new CommonOpenFileDialog();
+            dialog.RestoreDirectory = true;
 
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                mTagProfileText.AppendText(openFileDialog.FileName);
+                mTagProfileText.AppendText(dialog.FileName);
                 mTagFilterCheckBox.Checked = true;
             }
             Trace.WriteLine("mTagProfileText = " + mTagProfileText.Text);
@@ -62,17 +65,16 @@ namespace AutoAlogParser
 
         private void ContentProfileBtn_Click(object sender, EventArgs e)
         {
-            mContentProfileText.Text = "";
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Title = "Select Content Profile";
-            openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
+            mContentText.Text = "";
+            CommonOpenFileDialog dialog = new CommonOpenFileDialog();
+            dialog.RestoreDirectory = true;
 
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                mContentProfileText.AppendText(openFileDialog.FileName);
-                mContentFilterCheckBox.Checked = true;
+                mContentText.AppendText(dialog.FileName);
+                mContentProfileCheckBox.Checked = true;
             }
-            Trace.WriteLine("mContentProfileText = " + mContentProfileText.Text);
+            Trace.WriteLine("mContentProfileText = " + mContentText.Text);
         }
 
         private void MergeBtn_Click(object sender, EventArgs e)
@@ -116,14 +118,20 @@ namespace AutoAlogParser
                 mTagFilterCheckBox.Checked = false;
         }
 
-        private void mContentProfileText_TextChanged(object sender, EventArgs e)
+        private void ContentProfileText_TextChanged(object sender, EventArgs e)
         {
-            if(mContentProfileText.Text!=String.Empty)
-                mContentFilterCheckBox.Checked = true;
+            /*
+             * if(mContentText.Text!=String.Empty)
+                mContentProfileCheckBox.Checked = true;
             else
-                mContentFilterCheckBox.Checked = false;
+                mContentProfileCheckBox.Checked = false;
+            */
         }
 
+        private void ContentProfileText_GotFocus(object sender, EventArgs e)
+        {
+
+        }
 
         private void mTagFilterCheckBox_CheckedChanged(object sender, EventArgs e)
         {
@@ -134,11 +142,11 @@ namespace AutoAlogParser
             }
         }
 
-        private void mContentFilterCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void ContentProfileCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            if (!mContentFilterCheckBox.Checked)
+            if (!mContentProfileCheckBox.Checked)
             {
-                mContentProfileText.Text = String.Empty;
+                mContentText.Text = String.Empty;
             }
         }
 
@@ -149,8 +157,16 @@ namespace AutoAlogParser
 
         private void AutoParserIssueBtn_Click(object sender, EventArgs e)
         {
-
+            try
+            {
+                mJirHandler.TransferIssue();
+            }
+            catch (AlogParserException ex)
+            {
+                mUtility.OutputJiraText("AutoParserIssue ex = " + ex.getMessage());
+            }
         }
+
         private String getPS1TeamIssueFilter()
         {
             return "issuetype = \"SW Bug\" AND status in (Opened, \"In Progress\", Reopened, Resolving, Monitoring, Inspecting, Verifying) AND assignee in (membersOf(_R3J148), membersOf(_R3J148T03), membersOf(_R3J148T02), membersOf(_R3J148T01)) ORDER BY assignee ASC";
@@ -196,6 +212,8 @@ namespace AutoAlogParser
             }
             else
             {
+                mIssueFilterText.Text = "";
+                mJiraBaiscText.Text = "";
                 mJiraBaiscText.Enabled = true;
                 mJiraBasicBtn.Enabled = true;
             }
@@ -217,6 +235,7 @@ namespace AutoAlogParser
             }
             else
             {
+                mJiraCondtionText.Text = "";
                 mJiraCondtionText.Enabled = true;
                 mJiraCondtionBtn.Enabled = true;
             }
@@ -246,17 +265,16 @@ namespace AutoAlogParser
         private void mJiraBasicBtn_Click(object sender, EventArgs e)
         {
             mJiraBaiscText.Text = "";
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Title = "Select Setup Profile";
-            openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
+            CommonOpenFileDialog dialog = new CommonOpenFileDialog();
+            dialog.RestoreDirectory = true;
 
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                mJiraBaiscText.AppendText(openFileDialog.FileName);
+                mJiraBaiscText.AppendText(dialog.FileName);
+                mJirHandler.loadSetupProfile();
+                mJiraBasicCheckBox.Enabled = false;
             }
             mUtility.OutputText("mJiraBaiscText = " + mJiraBaiscText.Text);
-            mJirHandler.loadSetupProfile();
-            mJiraBasicCheckBox.Enabled = false;
         }
 
         private void mJiraBaiscText_TextChanged(object sender, EventArgs e)
@@ -270,21 +288,24 @@ namespace AutoAlogParser
         private void mJiraCondtionBtn_Click(object sender, EventArgs e)
         {
             mJiraCondtionText.Text = "";
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Title = "Select Condition Profile";
-            openFileDialog.InitialDirectory = Directory.GetCurrentDirectory();
+            CommonOpenFileDialog dialog = new CommonOpenFileDialog();
+            dialog.RestoreDirectory = true;
 
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                mJiraCondtionText.AppendText(openFileDialog.FileName);
+                mJiraCondtionText.AppendText(dialog.FileName);
+                mJirHandler.loadConditionProfile();
             }
             mUtility.OutputText("mJiraCondtionText = " + mJiraCondtionText.Text);
-            mJirHandler.loadConditionProfile();
         }
 
         private void mAutoAssignBtn_Click(object sender, EventArgs e)
         {
-            mJirHandler.AutoAssign();
+            try{
+                mJirHandler.AutoAssign();
+            }catch(AlogParserException ex){
+                mUtility.OutputJiraText("AutoAssign ex = " + ex.getMessage());
+            }
         }
 
         private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
@@ -309,8 +330,8 @@ namespace AutoAlogParser
                 }
                 if (File.Exists(contentProfile))
                 {
-                    mContentProfileText.Text = contentProfile;
-                    mContentProfileText.Enabled = false;
+                    mContentText.Text = contentProfile;
+                    mContentText.Enabled = false;
                 }
                 else
                 {
@@ -320,16 +341,22 @@ namespace AutoAlogParser
                 {
                     mLoadDefaultCB.Checked = false;
                     mTagProfileText.Enabled = true;
-                    mContentProfileText.Enabled = true;
+                    mContentText.Enabled = true;
                 }
             }
             else
             {
                 mTagProfileText.Text = String.Empty;
-                mContentProfileText.Text = String.Empty;
+                mContentText.Text = String.Empty;
                 mTagProfileText.Enabled = true;
-                mContentProfileText.Enabled = true;
+                mContentText.Enabled = true;
             }
         }
+
+        private void ContentFilterCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
+
     }
 }
